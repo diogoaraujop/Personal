@@ -5,7 +5,7 @@ a = Analysis(
     ['punches.py'],
     pathex=[],
     binaries=[],
-    datas=[('C:\\Users\\diogpere\\AppData\\Local\\ms-playwright\\chromium-1194', 'playwright\\driver\\package\\.local-browsers\\chromium-1194')],
+    datas=[('C:\\Users\\diogpere\\AppData\\Local\\ms-playwright\\chromium-1208', 'playwright\\driver\\package\\.local-browsers\\chromium-1208')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
