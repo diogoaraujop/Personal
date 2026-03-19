@@ -1,1 +1,1 @@
-pyinstaller --onefile --add-data "C:\Users\diogpere\AppData\Local\ms-playwright\chromium-1208;playwright\driver\package\.local-browsers\chromium-1208" punches.py  
+pyinstaller --onefile --add-data "C:\Users\diogpere\AppData\Local\ms-playwright\chromium-1208;playwright\driver\package\.local-browsers\chromium-1208" punches.py --name punches_v1.1.0

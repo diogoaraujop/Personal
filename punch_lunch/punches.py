@@ -2,18 +2,80 @@ from datetime import datetime, timedelta
 import time
 from playwright.sync_api import sync_playwright
 import getpass
-import requests
+import requests, sys
 
+version = "v1.1.0"
 header_script = f"""
     Project     : Punch Automation
     Author      : Diogo Pereira - @diogpere
-    Version     : 1.0.0
-    Last Update : 06-03-2026
+    Version     : {version}
+    Last Update : 19-03-2026
     """
 
 print()
 print(header_script)
 print()
+
+def get_latest_version():
+    print("Checking for updates...")
+    url = "https://api.github.com/repos/diogoaraujop/Personal/releases/latest"
+    
+    response = requests.get(url)
+    response.raise_for_status()  # 👈 ensures request worked
+    
+    data = response.json()
+    latest = data["tag_name"].split("_")[1]
+
+    if latest != version:
+        print(f"Outdated version. Downloading {latest}...")
+
+        # 👇 find correct asset safely
+        for asset in data["assets"]:
+            if asset["name"].endswith(".exe"):
+                download_file(asset["browser_download_url"], asset["name"])
+                return latest
+
+    else:
+        print("You are using the latest version.")
+
+    return version
+
+
+def download_file(url, filename):
+    with requests.get(url, stream=True) as response:
+        response.raise_for_status()
+
+        total_size = int(response.headers.get("content-length", 0))
+        downloaded = 0
+        start_time = time.time()
+
+        with open(filename, "wb") as f:
+            for chunk in response.iter_content(chunk_size=8192):
+                if not chunk:
+                    continue
+
+                f.write(chunk)
+                downloaded += len(chunk)
+
+                if total_size > 0:
+                    percent = (downloaded / total_size) * 100
+                    elapsed = time.time() - start_time
+                    speed = downloaded / elapsed if elapsed > 0 else 0
+                    remaining = (total_size - downloaded) / speed if speed > 0 else 0
+
+                    print(
+                        f"\r{percent:6.2f}% | "
+                        f"{downloaded / 1024 / 1024:8.2f} MB / {total_size / 1024 / 1024:8.2f} MB | "
+                        f"{speed / 1024 / 1024:6.2f} MB/s | "
+                        f"ETA: {remaining:6.1f}s",
+                        end=""
+                    )
+
+        print("\nDownload complete.")
+        sys.exit()
+    
+
+get_latest_version()
 
 webhook_url = 'https://hooks.slack.com/triggers/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'
 username = getpass.getuser()
