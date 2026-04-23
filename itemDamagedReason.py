@@ -4,9 +4,7 @@ from requests_kerberos import HTTPKerberosAuth, DISABLED
 from urllib3 import disable_warnings
 from urllib3.exceptions import InsecureRequestWarning
 from time import strftime
-import re
-import os
-import requests
+import re, os, requests
 
 disable_warnings(category=InsecureRequestWarning)
 session = new_http_session()
@@ -27,7 +25,6 @@ try:
                 )
 except:
     os.system("mwinit")
-    raise SystemExit(3)
 
 # Verify authentication
 if (
@@ -43,7 +40,6 @@ if (
     != 200
 ):
     os.system("mwinit")
-    raise SystemExit(4)
 
 # Initialize logistics session
 session.get("https://logistics.amazon.co.uk/station/dashboard/problemsolve")
@@ -166,7 +162,7 @@ def main(tracking_id_list: list[str]):
         csv_string += f"\n{tracking_id},{damage_reason}"
         damage_reasons[damage_reason] = damage_reasons.get(damage_reason, 0) + 1
 
-    output_path = r"C:\Users\bentgeok\Desktop\Python"
+    output_path = r"C:\Users\diogpere\Documents"
     filename = f"damage_reasons_{strftime('%Y%m%d%H%M')}.csv"
     full_path = os.path.join(output_path, filename)
 
