@@ -9,7 +9,7 @@ header_script = f"""
     Project     : Punch Automation
     Author      : Diogo Pereira - @diogpere
     Version     : {version}
-    Last Update : 19-03-2026
+    Last Update : 21-05-2026
     """
 
 print()
@@ -18,27 +18,45 @@ print()
 
 def get_latest_version():
     print("Checking for updates...")
-    url = "https://api.github.com/repos/diogoaraujop/Personal/releases/latest"
-    
-    response = requests.get(url)
-    response.raise_for_status()  # 👈 ensures request worked
-    
-    data = response.json()
-    latest = data["tag_name"].split("_")[1]
+    repo_name = "Personal"
+    url = f"https://api.github.com/repos/diogoaraujop/{repo_name}/releases/latest"
 
-    if latest != version:
-        print(f"Outdated version. Downloading {latest}...")
+    try:
+        response = requests.get(url, timeout=10)
 
-        # 👇 find correct asset safely
-        for asset in data["assets"]:
-            if asset["name"].endswith(".exe"):
-                download_file(asset["browser_download_url"], asset["name"])
-                return latest
+        if response.status_code == 403:
+            print("Could not check for updates (GitHub rate limit reached). Continuing with current version.")
+            return version
 
-    else:
-        print("You are using the latest version.")
+        response.raise_for_status()
 
-    return version
+        data = response.json()
+        latest = data["tag_name"].split("_")[-1]
+
+        if latest != version:
+            print(f"Outdated version. Downloading {latest}...")
+
+            for asset in data.get("assets", []):
+                if asset["name"].endswith(".exe"):
+                    download_file(asset["browser_download_url"], asset["name"])
+                    return latest
+
+            print("No .exe file found in the release. Continuing with current version.")
+            return version
+
+        else:
+            print("You are using the latest version.")
+            return version
+
+    except requests.exceptions.RequestException as e:
+        print(f"Could not check for updates: {e}")
+        print("Continuing with current version.")
+        return version
+
+    except Exception as e:
+        print(f"Unexpected error while checking updates: {e}")
+        print("Continuing with current version.")
+        return version
 
 
 def download_file(url, filename):
