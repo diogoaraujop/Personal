@@ -1,0 +1,14 @@
+{
+  "interval_seconds": 21600,
+  "search": true,
+  "product_urls": [],
+  "amazon_only": false,
+  "email": {
+    "to": "",
+    "from": "",
+    "host": "",
+    "port": 587,
+    "ssl": false,
+    "username": ""
+  }
+}

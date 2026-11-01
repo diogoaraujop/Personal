@@ -95,7 +95,7 @@ def download_file(url, filename):
 
 get_latest_version()
 
-webhook_url = 'https://hooks.slack.com/triggers/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'
+webhook_url = (__import__("pathlib").Path(__file__).with_name("chime-webhook.local-secret").read_text(encoding="utf-8").strip() if __import__("pathlib").Path(__file__).with_name("chime-webhook.local-secret").exists() else "")
 username = getpass.getuser()
 USER_DATA_DIR = f"C:/Users/{username}/Documents/playwright_profile/punches"
 

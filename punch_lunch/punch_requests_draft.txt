@@ -1,0 +1,71 @@
+"""Draft for reviewing and later replaying ONE captured MyTime API request.
+
+No endpoint has been verified yet. Captures can contain background requests.
+Review method, URL and body to identify the actual punch before using --send.
+Cookies, authorization and CSRF tokens can expire; this draft cannot renew them.
+Captured bodies may contain timestamps or one-use tokens needing adjustment.
+
+List candidates (does not send anything):
+    python punch_requests_draft.txt
+Inspect a particular capture:
+    python punch_requests_draft.txt --capture PATH
+After review, explicitly send one selected request (may create a real punch):
+    python punch_requests_draft.txt --capture PATH --index 0 --send
+
+Raw captures include authentication data and are kept in the Chrome profile,
+outside this source folder. Do not share raw capture files.
+"""
+
+import argparse
+import base64
+import json
+from pathlib import Path
+from urllib.parse import urlsplit
+
+import requests
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--capture", type=Path)
+    parser.add_argument("--index", type=int)
+    parser.add_argument("--send", action="store_true")
+    args = parser.parse_args()
+
+    profile = Path.home() / "Documents" / "playwright_profile" / "punches"
+    captures = sorted(profile.glob("punch_api_*.json"))
+    capture = args.capture or (captures[-1] if captures else None)
+    if capture is None:
+        parser.error("No capture yet. Run punches_new.py for a scheduled punch first.")
+    records = json.loads(capture.read_text(encoding="utf-8"))["requests"]
+    print(f"Capture: {capture}")
+    for index, record in enumerate(records):
+        url = urlsplit(record["url"])
+        print(f"{index}: {record['method']} {url.scheme}://{url.netloc}{url.path} status={record['status']}")
+    if not args.send:
+        print("Review only. No requests sent. Inspect the local JSON for payloads and headers.")
+        return
+    if args.index is None or not 0 <= args.index < len(records):
+        parser.error("--send requires a valid --index selecting one reviewed request.")
+
+    record = records[args.index]
+    # requests calculates these transport headers for the captured body.
+    excluded = {"host", "content-length", "connection", "accept-encoding", "transfer-encoding"}
+    headers = {
+        name: value for name, value in record["headers"].items()
+        if name.lower() not in excluded and not name.startswith(":")
+    }
+    body = record["body_base64"]
+    # Use exactly the captured cookies/authorization, without merging other sessions.
+    # No automatic retries or redirects: an uncertain result must be checked in MyTime.
+    with requests.Session() as session:
+        response = session.request(
+            record["method"], record["url"], headers=headers,
+            data=base64.b64decode(body) if body is not None else None,
+            timeout=30, allow_redirects=False,
+        )
+    print(f"HTTP {response.status_code}. Verify the punch in MyTime; HTTP success alone is not confirmation.")
+
+
+if __name__ == "__main__":
+    main()

@@ -13,3 +13,9 @@ __pycache__/
 
 # Executables
 *.exe
+# Local credentials and migration settings
+**/Password.txt
+*.local-secret
+.env
+.env.*
+!*.example
